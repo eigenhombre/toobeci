@@ -22,7 +22,13 @@ func TestStuff(t *testing.T) {
 		input := params[:len(params)-1]
 		return example{input, output, true}
 	}
-
+	S := func(ss string) string {
+		rets := []string{}
+		for _, s := range strings.Split(ss, " ") {
+			rets = append(rets, "\t"+s)
+		}
+		return strings.Join(rets, "\n")
+	}
 	examples := []example{
 		Case("1", "drop", ""),
 		ECase("\\ comments are ignored", ""),
@@ -45,10 +51,24 @@ func TestStuff(t *testing.T) {
 		ECase(".", "fun"),
 		ECase("clr      \\ clears the stack", ""),
 		ECase(".s       \\ shows the stack", ""),
-		ECase("1 2 3 .s", "\t3\n\t2\n\t1"),
-		ECase("swap .s  \\ swap top two items", "\t2\n\t3\n\t1"),
-		ECase("rot .s   \\ rotate items", "\t1\n\t2\n\t3"),
-		ECase("over .s  \\ copy & promote 2nd item", "\t2\n\t1\n\t2\n\t3"),
+		ECase("1 2 3 .s", S("3 2 1")),
+		ECase("swap .s  \\ swap top two items", S("2 3 1")),
+		ECase("rot .s   \\ rotate items", S("1 2 3")),
+		ECase("over .s  \\ copy & promote 2nd item", S("2 1 2 3")),
+		ECase("\\ Some boolean logic:", ""),
+		ECase("1 1 and .", "1"),
+		ECase("1 0 and .", "0"),
+		Case("0 0 and .", "0"),
+		Case("0 1 and .", "0"),
+		ECase("1 1 or .", "1"),
+		ECase("1 0 or .", "1"),
+		Case("0 0 or .", "0"),
+		Case("0 1 or .", "1"),
+		ECase("\\ Default 'true' value is -1 (0b1111...):", ""),
+		ECase("1 1 = .", "-1"),
+		ECase("1 0 = .", "0"),
+		ECase("3 not .", "0"),
+		ECase("0 not .", "-1"),
 	}
 	i := newInterpreter()
 	// Save ECases to a file examples.fs

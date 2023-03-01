@@ -46,6 +46,24 @@ fun
 	1
 	2
 	3
+> \ Some boolean logic:
+> 1 1 and .
+1
+> 1 0 and .
+0
+> 1 1 or .
+1
+> 1 0 or .
+1
+> \ Default 'true' value is -1 (0b1111...):
+> 1 1 = .
+-1
+> 1 0 = .
+0
+> 3 not .
+0
+> 0 not .
+-1
 > ^D
 Goodbye.
 ```

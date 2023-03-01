@@ -10,6 +10,7 @@ import (
 
 type stackElement interface {
 	String() string
+	Equals(stackElement) bool
 }
 
 type stack struct {
@@ -23,8 +24,24 @@ func (i intElement) String() string {
 	return fmt.Sprintf("%d", i)
 }
 
+func (i intElement) Equals(e stackElement) bool {
+	switch t := e.(type) {
+	case intElement:
+		return i == t
+	}
+	return false
+}
+
 func (s stringElement) String() string {
 	return string(s)
+}
+
+func (s stringElement) Equals(e stackElement) bool {
+	switch t := e.(type) {
+	case stringElement:
+		return s == t
+	}
+	return false
 }
 
 func applyBinOp(s *stack, op func(a, b stackElement) stackElement) (*stack, string, error) {
@@ -47,6 +64,9 @@ func applyBinOp(s *stack, op func(a, b stackElement) stackElement) (*stack, stri
 	return s, "", fmt.Errorf("type error")
 }
 
+const True = intElement(-1)
+const False = intElement(0)
+
 var builtins = map[string]func(*stack) (*stack, string, error){
 	"+": func(s *stack) (*stack, string, error) {
 		return applyBinOp(s, func(a, b stackElement) stackElement {
@@ -67,6 +87,40 @@ var builtins = map[string]func(*stack) (*stack, string, error){
 		return applyBinOp(s, func(a, b stackElement) stackElement {
 			return intElement(a.(intElement) / b.(intElement))
 		})
+	},
+	"and": func(s *stack) (*stack, string, error) {
+		return applyBinOp(s, func(a, b stackElement) stackElement {
+			return intElement(a.(intElement) & b.(intElement))
+		})
+	},
+	"or": func(s *stack) (*stack, string, error) {
+		return applyBinOp(s, func(a, b stackElement) stackElement {
+			return intElement(a.(intElement) | b.(intElement))
+		})
+	},
+	"=": func(s *stack) (*stack, string, error) {
+		return applyBinOp(s, func(a, b stackElement) stackElement {
+			if a.Equals(b) {
+				return True
+			}
+			return False
+		})
+	},
+	"not": func(s *stack) (*stack, string, error) {
+		e, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		switch t := e.(type) {
+		case intElement:
+			if t == False {
+				s.push(True)
+			} else {
+				s.push(False)
+			}
+			return s, "", nil
+		}
+		return s, "", fmt.Errorf("type error")
 	},
 	"drop": func(s *stack) (*stack, string, error) {
 		_, err := s.pop()
