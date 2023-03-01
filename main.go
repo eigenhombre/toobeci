@@ -202,6 +202,9 @@ func (i *interpreter) handleInputLine(input string) (string, error) {
 	for _, word := range words {
 		// fmt.Println("handling word", word)
 		// See if input is in dictionary
+		if word == "" {
+			continue
+		}
 		if f, ok := builtins[word]; ok {
 			// If so, call it
 			i.s, out, err = f(i.s)

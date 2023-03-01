@@ -26,7 +26,11 @@ func TestStuff(t *testing.T) {
 	examples := []example{
 		Case("1", "drop", ""),
 		ECase("\\ comments are ignored", ""),
+		ECase("\\ . prints the 'top of the stack':", ""),
+		ECase("1 .", "1"),
+		ECase("\\ you can do math ...", ""),
 		ECase("1", "2", "+", ""),
+		ECase("\\ and then show the result:", ""),
 		ECase(".", "3"),
 		Case("1", ".", "1"),
 		Case("1", "2", "+", ".", "3"),

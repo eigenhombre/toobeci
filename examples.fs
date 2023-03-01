@@ -5,7 +5,12 @@ $ toobeci
 Welcome to toobeci
 
 > \ comments are ignored
+> \ . prints the 'top of the stack':
+> 1 .
+1
+> \ you can do math ...
 > 1 2 +
+> \ and then show the result:
 > .
 3
 > 10 10 / .
