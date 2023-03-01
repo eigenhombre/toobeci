@@ -39,6 +39,10 @@ func TestStuff(t *testing.T) {
 		t.Errorf("error: %v", err)
 	}
 	defer f.Close()
+	f.WriteString(`$ toobeci
+Welcome to toobeci
+
+`)
 	for _, e := range examples {
 		output := ""
 		for _, input := range e.input {
@@ -58,4 +62,7 @@ func TestStuff(t *testing.T) {
 			}
 		}
 	}
+	f.WriteString(`> ^D
+Goodbye.
+`)
 }
