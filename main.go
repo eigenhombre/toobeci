@@ -32,84 +32,81 @@ func (s stringElement) String() string {
 	return string(s)
 }
 
-func applyBinOp(s *stack, op func(a, b stackElement) stackElement) (*stack, error) {
+func applyBinOp(s *stack, op func(a, b stackElement) stackElement) (*stack, string, error) {
 	e1, err := s.pop()
 	if err != nil {
-		return s, err
+		return s, "", err
 	}
 	e2, err := s.pop()
 	if err != nil {
-		return s, err
+		return s, "", err
 	}
 	switch e1.(type) {
 	case intElement:
 		switch e2.(type) {
 		case intElement:
 			s.push(op(e1, e2))
-			return s, nil
+			return s, "", nil
 		}
 	}
-	return s, fmt.Errorf("type error")
+	return s, "", fmt.Errorf("type error")
 }
 
-var builtins = map[string]func(*stack) (*stack, error){
-	"+": func(s *stack) (*stack, error) {
+var builtins = map[string]func(*stack) (*stack, string, error){
+	"+": func(s *stack) (*stack, string, error) {
 		return applyBinOp(s, func(a, b stackElement) stackElement {
 			return intElement(a.(intElement) + b.(intElement))
 		})
 	},
-	"-": func(s *stack) (*stack, error) {
+	"-": func(s *stack) (*stack, string, error) {
 		return applyBinOp(s, func(a, b stackElement) stackElement {
 			return intElement(a.(intElement) - b.(intElement))
 		})
 	},
-	"*": func(s *stack) (*stack, error) {
+	"*": func(s *stack) (*stack, string, error) {
 		return applyBinOp(s, func(a, b stackElement) stackElement {
 			return intElement(a.(intElement) * b.(intElement))
 		})
 	},
-	"/": func(s *stack) (*stack, error) {
+	"/": func(s *stack) (*stack, string, error) {
 		return applyBinOp(s, func(a, b stackElement) stackElement {
 			return intElement(a.(intElement) / b.(intElement))
 		})
 	},
-	"drop": func(s *stack) (*stack, error) {
+	"drop": func(s *stack) (*stack, string, error) {
 		_, err := s.pop()
-		return s, err
+		return s, "", err
 	},
-	"dup": func(s *stack) (*stack, error) {
+	"dup": func(s *stack) (*stack, string, error) {
 		e, err := s.pop()
 		if err != nil {
-			return s, err
+			return s, "", err
 		}
 		s.push(e)
 		s.push(e)
-		return s, nil
+		return s, "", nil
 	},
-	".": func(s *stack) (*stack, error) {
+	".": func(s *stack) (*stack, string, error) {
 		e, err := s.pop()
 		if err != nil {
-			return s, err
+			return s, "", err
 		}
-		fmt.Println(e)
-		return s, nil
+		return s, e.String(), nil
 	},
-	"emit": func(s *stack) (*stack, error) {
+	"emit": func(s *stack) (*stack, string, error) {
 		e, err := s.pop()
 		if err != nil {
-			return s, err
+			return s, "", err
 		}
 		switch e := e.(type) {
 		case intElement:
-			fmt.Printf("%c", e)
-			return s, nil
+			return s, fmt.Sprintf("%c", e), nil
 		default:
-			return s, fmt.Errorf("type error")
+			return s, "", fmt.Errorf("type error")
 		}
 	},
-	".s": func(s *stack) (*stack, error) {
-		fmt.Print(s)
-		return s, nil
+	".s": func(s *stack) (*stack, string, error) {
+		return s, s.String(), nil
 	},
 }
 
@@ -135,17 +132,55 @@ func (s *stack) pop() (stackElement, error) {
 	return e, nil
 }
 
+type interpreter struct {
+	s *stack
+}
+
+func newInterpreter() *interpreter {
+	return &interpreter{
+		s: &stack{},
+	}
+}
+
+func (i *interpreter) handleInputLine(input string) (string, error) {
+	ret := ""
+	trimmed := strings.Trim(input, " \t\n")
+	// Split on whitespace
+	words := strings.Split(trimmed, " ")
+	// fmt.Println("words:", words)
+	var err error
+	var out string
+	for _, word := range words {
+		// fmt.Println("handling word", word)
+		// See if input is in dictionary
+		if f, ok := builtins[word]; ok {
+			// If so, call it
+			i.s, out, err = f(i.s)
+			ret += out
+			if err != nil {
+				return ret, err
+			}
+			continue
+		}
+		// Not in the dictionary?  Try to parse it
+		// as an int
+		if intVal, err := strconv.Atoi(word); err == nil {
+			i.s.push(intElement(intVal))
+			continue
+		}
+		i.s.push(stringElement(word))
+	}
+	return ret, nil
+}
+
 func main() {
 	// print a preamble
-	fmt.Print("Welcome to Toobeci.\n")
-
+	fmt.Print("Welcome to Toobeci.\n\n")
 	rdr := bufio.NewReader(os.Stdin)
-	// create a stack
-	s := &stack{}
-outer:
+	i := newInterpreter()
 	for {
 		// print a prompt
-		fmt.Print("\n> ")
+		fmt.Print("> ")
 		// read a line of input from stdin
 		input, err := rdr.ReadString('\n')
 		if err != nil {
@@ -156,30 +191,12 @@ outer:
 			fmt.Println(err)
 			continue
 		}
-		trimmed := strings.Trim(input, " \t\n")
-		// Split on whitespace
-		words := strings.Split(trimmed, " ")
-		// fmt.Println("words:", words)
-		for _, word := range words {
-			// fmt.Println("handling word", word)
-			// See if input is in dictionary
-			if f, ok := builtins[word]; ok {
-				// If so, call it
-				s, err = f(s)
-				if err != nil {
-					fmt.Println(err)
-					continue outer
-				}
-				continue
-			}
-			// Not in the dictionary?  Try to parse it
-			// as an int
-			if i, err := strconv.Atoi(word); err == nil {
-				s.push(intElement(i))
-				continue
-			}
-			s.push(stringElement(word))
+		out, err := i.handleInputLine(input)
+		if err != nil {
+			fmt.Println(err)
 		}
-		fmt.Print(s)
+		if out != "" {
+			fmt.Println(out)
+		}
 	}
 }

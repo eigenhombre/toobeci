@@ -10,7 +10,9 @@ def execute(code):
     out, _ = proc.communicate()  # Optimism!!!
     return out.decode('utf-8')
 
-steps = ["go build ."]
+steps = ["go build .",
+         "go install .",
+         "echo '2 2 * .' | toobeci"]
 
 steps_txt = ("\n" +
              "".join([f"$ {s}\n{execute(s)}\n" for s in steps]) +

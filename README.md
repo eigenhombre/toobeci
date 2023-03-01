@@ -14,6 +14,16 @@ Mostly just to help me learn the language.
     
     $ go build .
     
+    $ go install .
+    
+    $ echo '2 2 * .' | toobeci
+    Welcome to Toobeci.
+    
+    > 4
+    
+    >
+    Goodbye.
+    
     
     
 <!-- END EXAMPLES -->
