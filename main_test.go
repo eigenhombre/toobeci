@@ -39,7 +39,9 @@ func TestStuff(t *testing.T) {
 		t.Errorf("error: %v", err)
 	}
 	defer f.Close()
-	f.WriteString("```\n" + `$ toobeci
+	f.WriteString("```\n" + `$ go build .
+$ go install
+$ toobeci
 Welcome to toobeci
 
 `)

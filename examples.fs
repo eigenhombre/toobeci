@@ -1,4 +1,6 @@
 ```
+$ go build .
+$ go install
 $ toobeci
 Welcome to toobeci
 
