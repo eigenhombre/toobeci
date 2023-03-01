@@ -17,15 +17,10 @@ type stack struct {
 }
 
 type intElement int32
-type floatElement float64
 type stringElement string
 
 func (i intElement) String() string {
 	return fmt.Sprintf("%d", i)
-}
-
-func (f floatElement) String() string {
-	return fmt.Sprintf("%f", f)
 }
 
 func (s stringElement) String() string {
@@ -77,6 +72,19 @@ var builtins = map[string]func(*stack) (*stack, string, error){
 		_, err := s.pop()
 		return s, "", err
 	},
+	"swap": func(s *stack) (*stack, string, error) {
+		e1, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		e2, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		s.push(e1)
+		s.push(e2)
+		return s, "", nil
+	},
 	"dup": func(s *stack) (*stack, string, error) {
 		e, err := s.pop()
 		if err != nil {
@@ -91,7 +99,7 @@ var builtins = map[string]func(*stack) (*stack, string, error){
 		if err != nil {
 			return s, "", err
 		}
-		return s, e.String(), nil
+		return s, e.String() + "\n", nil
 	},
 	"emit": func(s *stack) (*stack, string, error) {
 		e, err := s.pop()

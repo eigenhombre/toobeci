@@ -25,10 +25,22 @@ func TestStuff(t *testing.T) {
 
 	examples := []example{
 		Case("1", "drop", ""),
+		ECase("For now, new words are just symbols", ""),
+		ECase("like foo bar baz", ""),
+		ECase("but we can do some math", ""),
 		ECase("1", "2", "+", ""),
 		ECase(".", "3"),
 		Case("1", ".", "1"),
 		Case("1", "2", "+", ".", "3"),
+		Case("1", "2", "+", "3", "+", ".", "6"),
+		ECase("10 10 / .", "1"),
+		ECase("10 dup dup * * .", "1000"),
+		ECase("2 3 drop .", "2"),
+		ECase("42 emit", "*"),
+		ECase("Unicode is fun 27700 emit", "水"),
+		Case(".s", "IGNORE"),
+		ECase("1 2 . .", "2\n1"),
+		ECase("1 2 swap . .", "1\n2"),
 	}
 	i := newInterpreter()
 	// Save ECases to a file examples.fs
@@ -54,13 +66,14 @@ Welcome to toobeci
 			}
 			output += out
 		}
-		if output != e.output {
+		output = strings.Trim(output, "\n")
+		if output != e.output && e.output != "IGNORE" {
 			t.Errorf("expected '%v', got '%v'", e.output, output)
 		}
 		if e.canonical {
 			f.WriteString("> " + strings.Join(e.input, " ") + "\n")
 			if e.output != "" {
-				f.WriteString(e.output + "\n")
+				f.WriteString(output + "\n")
 			}
 		}
 	}
