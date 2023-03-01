@@ -4,7 +4,7 @@
 
 ![build](https://github.com/eigenhombre/toobeci/actions/workflows/build.yml/badge.svg)
 
-A simple Forth interpreter written in Go.
+A simple [Forth](https://en.wikipedia.org/wiki/Forth_(programming_language)) interpreter written in Go.
 
 Mostly just to help me learn the language.
 
