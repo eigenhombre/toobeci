@@ -38,6 +38,14 @@ Welcome to toobeci
 > 1 2 swap . .
 1
 2
+> 1 2 3 rot . . .
+1
+3
+2
+> 1 2 over . . .
+2
+1
+2
 > ^D
 Goodbye.
 ```

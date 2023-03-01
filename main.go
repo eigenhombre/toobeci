@@ -85,6 +85,38 @@ var builtins = map[string]func(*stack) (*stack, string, error){
 		s.push(e2)
 		return s, "", nil
 	},
+	"rot": func(s *stack) (*stack, string, error) {
+		e1, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		e2, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		e3, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		s.push(e2)
+		s.push(e1)
+		s.push(e3)
+		return s, "", nil
+	},
+	"over": func(s *stack) (*stack, string, error) {
+		e1, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		e2, err := s.pop()
+		if err != nil {
+			return s, "", err
+		}
+		s.push(e1)
+		s.push(e2)
+		s.push(e1)
+		return s, "", nil
+	},
 	"dup": func(s *stack) (*stack, string, error) {
 		e, err := s.pop()
 		if err != nil {

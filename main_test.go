@@ -41,6 +41,8 @@ func TestStuff(t *testing.T) {
 		Case(".s", "IGNORE"),
 		ECase("1 2 . .", "2\n1"),
 		ECase("1 2 swap . .", "1\n2"),
+		ECase("1 2 3 rot . . .", "1\n3\n2"),
+		ECase("1 2 over . . .", "2\n1\n2"),
 	}
 	i := newInterpreter()
 	// Save ECases to a file examples.fs
