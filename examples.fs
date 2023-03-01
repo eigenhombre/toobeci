@@ -16,10 +16,12 @@ Welcome to toobeci
 2
 > 42 emit
 *
-> \ Currently unrecognized symbols are ignored...
+> \ Unrecognized symbols are just strings for now.
 > \ But the `emit` operator emits unicode characters:
 > Unicode is fun 27700 emit
 水
+> .
+fun
 > 1 2 . .
 2
 1
