@@ -25,9 +25,7 @@ func TestStuff(t *testing.T) {
 
 	examples := []example{
 		Case("1", "drop", ""),
-		ECase("For now, new words are just symbols", ""),
-		ECase("like foo bar baz", ""),
-		ECase("but we can do some math", ""),
+		ECase("\\ comments are ignored", ""),
 		ECase("1", "2", "+", ""),
 		ECase(".", "3"),
 		Case("1", ".", "1"),
@@ -37,12 +35,17 @@ func TestStuff(t *testing.T) {
 		ECase("10 dup dup * * .", "1000"),
 		ECase("2 3 drop .", "2"),
 		ECase("42 emit", "*"),
+		ECase("\\ Currently unrecognized symbols are ignored...", ""),
+		ECase("\\ But the `emit` operator emits unicode characters:", ""),
 		ECase("Unicode is fun 27700 emit", "水"),
 		Case(".s", "IGNORE"),
 		ECase("1 2 . .", "2\n1"),
 		ECase("1 2 swap . .", "1\n2"),
 		ECase("1 2 3 rot . . .", "1\n3\n2"),
 		ECase("1 2 over . . .", "2\n1\n2"),
+		ECase("clr     \\ clears the stack", ""),
+		ECase(".s      \\ shows the stack", ""),
+		ECase("1 2 3 .s", "IGNORE"),
 	}
 	i := newInterpreter()
 	// Save ECases to a file examples.fs

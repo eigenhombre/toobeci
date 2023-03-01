@@ -148,12 +148,15 @@ var builtins = map[string]func(*stack) (*stack, string, error){
 	".s": func(s *stack) (*stack, string, error) {
 		return s, s.String(), nil
 	},
+	"clr": func(s *stack) (*stack, string, error) {
+		return &stack{}, "", nil
+	},
 }
 
 func (s *stack) String() string {
 	ret := ""
-	for i, e := range s.elements {
-		ret += fmt.Sprintf("\t%d %v (%T)\n", i, e, e)
+	for _, e := range s.elements {
+		ret += fmt.Sprintf("\t%v\n", e)
 	}
 	return ret
 }
@@ -182,12 +185,17 @@ func newInterpreter() *interpreter {
 	}
 }
 
+func parse(input string) []string {
+	halves := strings.Split(input, "\\")
+	// discard comments:
+	nonComment := halves[0]
+	trimmed := strings.Trim(nonComment, " \t\n")
+	return strings.Split(trimmed, " ")
+}
+
 func (i *interpreter) handleInputLine(input string) (string, error) {
 	ret := ""
-	trimmed := strings.Trim(input, " \t\n")
-	// Split on whitespace
-	words := strings.Split(trimmed, " ")
-	// fmt.Println("words:", words)
+	words := parse(input)
 	var err error
 	var out string
 	for _, word := range words {
