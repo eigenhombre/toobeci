@@ -112,9 +112,9 @@ var builtins = map[string]func(*stack) (*stack, string, error){
 		if err != nil {
 			return s, "", err
 		}
-		s.push(e1)
 		s.push(e2)
 		s.push(e1)
+		s.push(e2)
 		return s, "", nil
 	},
 	"dup": func(s *stack) (*stack, string, error) {
@@ -155,8 +155,9 @@ var builtins = map[string]func(*stack) (*stack, string, error){
 
 func (s *stack) String() string {
 	ret := ""
-	for _, e := range s.elements {
-		ret += fmt.Sprintf("\t%v\n", e)
+	// reverse order so top is at top:
+	for i := len(s.elements) - 1; i >= 0; i-- {
+		ret += fmt.Sprintf("\t%v\n", s.elements[i])
 	}
 	return ret
 }

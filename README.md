@@ -34,23 +34,22 @@ Welcome to toobeci
 水
 > .
 fun
-> 1 2 . .
-2
-1
-> 1 2 swap . .
-1
-2
-> 1 2 3 rot . . .
-1
-3
-2
-> 1 2 over . . .
-2
-1
-2
-> clr     \ clears the stack
-> .s      \ shows the stack
+> clr      \ clears the stack
+> .s       \ shows the stack
 > 1 2 3 .s
+	3
+	2
+	1
+> swap .s  \ swap top two items
+	2
+	3
+	1
+> rot .s   \ rotate items
+	1
+	2
+	3
+> over .s  \ copy & promote 2nd item
+	2
 	1
 	2
 	3

@@ -39,13 +39,12 @@ func TestStuff(t *testing.T) {
 		ECase("\\ But the `emit` operator emits unicode characters:", ""),
 		ECase("Unicode is fun 27700 emit", "水"),
 		ECase(".", "fun"),
-		ECase("1 2 . .", "2\n1"),
-		ECase("1 2 swap . .", "1\n2"),
-		ECase("1 2 3 rot . . .", "1\n3\n2"),
-		ECase("1 2 over . . .", "2\n1\n2"),
-		ECase("clr     \\ clears the stack", ""),
-		ECase(".s      \\ shows the stack", ""),
-		ECase("1 2 3 .s", "IGNORE"),
+		ECase("clr      \\ clears the stack", ""),
+		ECase(".s       \\ shows the stack", ""),
+		ECase("1 2 3 .s", "\t3\n\t2\n\t1"),
+		ECase("swap .s  \\ swap top two items", "\t2\n\t3\n\t1"),
+		ECase("rot .s   \\ rotate items", "\t1\n\t2\n\t3"),
+		ECase("over .s  \\ copy & promote 2nd item", "\t2\n\t1\n\t2\n\t3"),
 	}
 	i := newInterpreter()
 	// Save ECases to a file examples.fs
