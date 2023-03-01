@@ -39,7 +39,7 @@ func TestStuff(t *testing.T) {
 		t.Errorf("error: %v", err)
 	}
 	defer f.Close()
-	f.WriteString(`$ toobeci
+	f.WriteString("```\n" + `$ toobeci
 Welcome to toobeci
 
 `)
@@ -64,5 +64,5 @@ Welcome to toobeci
 	}
 	f.WriteString(`> ^D
 Goodbye.
-`)
+` + "```\n")
 }

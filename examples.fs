@@ -1,3 +1,4 @@
+```
 $ toobeci
 Welcome to toobeci
 
@@ -6,3 +7,4 @@ Welcome to toobeci
 3
 > ^D
 Goodbye.
+```
