@@ -10,4 +10,4 @@ RUN go install -v golang.org/x/lint/golint@latest
 
 COPY . .
 
-RUN make
+RUN make test toobeci
