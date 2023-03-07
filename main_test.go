@@ -7,20 +7,18 @@ import (
 )
 
 func TestStuff(t *testing.T) {
+	var OK string = ""
 	type example struct {
-		input     []string
+		input     string
 		output    string
 		canonical bool
+		errStr    string
 	}
-	Case := func(params ...string) example {
-		output := params[len(params)-1]
-		input := params[:len(params)-1]
-		return example{input, output, false}
+	Case := func(input, output, errStr string) example {
+		return example{input, output, false, errStr}
 	}
-	ECase := func(params ...string) example {
-		output := params[len(params)-1]
-		input := params[:len(params)-1]
-		return example{input, output, true}
+	ECase := func(input, output, errStr string) example {
+		return example{input, output, true, errStr}
 	}
 	S := func(ss string) string {
 		rets := []string{}
@@ -30,45 +28,46 @@ func TestStuff(t *testing.T) {
 		return strings.Join(rets, "\n")
 	}
 	examples := []example{
-		Case("1", "drop", ""),
-		ECase("\\ comments are ignored", ""),
-		ECase("\\ . prints the 'top of the stack':", ""),
-		ECase("1 .", "1"),
-		ECase("\\ you can do math ...", ""),
-		ECase("1", "2", "+", ""),
-		ECase("\\ and then show the result:", ""),
-		ECase(".", "3"),
-		Case("1", ".", "1"),
-		Case("1", "2", "+", ".", "3"),
-		Case("1", "2", "+", "3", "+", ".", "6"),
-		ECase("10 10 / .", "1"),
-		ECase("10 dup dup * * .", "1000"),
-		ECase("2 3 drop .", "2"),
-		ECase("42 emit", "*"),
-		ECase("\\ Unrecognized symbols are just strings for now.", ""),
-		ECase("\\ But the `emit` operator emits unicode characters:", ""),
-		ECase("Unicode is fun 27700 emit", "水"),
-		ECase(".", "fun"),
-		ECase("clr      \\ clears the stack", ""),
-		ECase(".s       \\ shows the stack", ""),
-		ECase("1 2 3 .s", S("3 2 1")),
-		ECase("swap .s  \\ swap top two items", S("2 3 1")),
-		ECase("rot .s   \\ rotate items", S("1 2 3")),
-		ECase("over .s  \\ copy & promote 2nd item", S("2 1 2 3")),
-		ECase("\\ Some boolean logic:", ""),
-		ECase("1 1 and .", "1"),
-		ECase("1 0 and .", "0"),
-		Case("0 0 and .", "0"),
-		Case("0 1 and .", "0"),
-		ECase("1 1 or .", "1"),
-		ECase("1 0 or .", "1"),
-		Case("0 0 or .", "0"),
-		Case("0 1 or .", "1"),
-		ECase("\\ Default 'true' value is -1 (0b1111...):", ""),
-		ECase("1 1 = .", "-1"),
-		ECase("1 0 = .", "0"),
-		ECase("3 not .", "0"),
-		ECase("0 not .", "-1"),
+		Case("1 drop", "", OK),
+		ECase("\\ comments are ignored", "", OK),
+		ECase("\\ . prints the 'top of the stack':", "", OK),
+		ECase("1 .", "1", OK),
+		ECase("\\ you can do math ...", "", OK),
+		ECase("1 2 +", "", OK),
+		ECase("\\ and then show the result:", "", OK),
+		ECase(".", "3", OK),
+		Case("1 .", "1", OK),
+		Case("1 2 + .", "3", OK),
+		Case("1 2 + 3 + .", "6", OK),
+		ECase("10 10 / .", "1", OK),
+		ECase("10 dup dup * * .", "1000", OK),
+		ECase("2 3 drop .", "2", OK),
+		ECase("42 emit", "*", OK),
+		ECase("\\ The `emit` operator emits unicode characters:", "", OK),
+		ECase("27700 emit", "水", OK),
+		ECase("clr      \\ clears the stack", "", OK),
+		ECase(".s       \\ shows the stack", "", OK),
+		ECase("1 2 3 .s", S("3 2 1"), OK),
+		ECase("swap .s  \\ swap top two items", S("2 3 1"), OK),
+		ECase("rot .s   \\ rotate items", S("1 2 3"), OK),
+		ECase("over .s  \\ copy & promote 2nd item", S("2 1 2 3"), OK),
+		ECase("\\ Some boolean logic:", "", OK),
+		ECase("1 1 and .", "1", OK),
+		ECase("1 0 and .", "0", OK),
+		Case("0 0 and .", "0", OK),
+		Case("0 1 and .", "0", OK),
+		ECase("1 1 or .", "1", OK),
+		ECase("1 0 or .", "1", OK),
+		Case("0 0 or .", "0", OK),
+		Case("0 1 or .", "1", OK),
+		ECase("\\ Default 'true' value is -1 (0b1111...):", "", OK),
+		ECase("1 1 = .", "-1", OK),
+		ECase("1 0 = .", "0", OK),
+		ECase("3 not .", "0", OK),
+		ECase("0 not .", "-1", OK),
+		// ECase(": three 3 ;", "", OK),
+		// ECase("three .", "3", OK),
+		ECase("dakine", "", "unknown word"),
 	}
 	i := newInterpreter()
 	// Save ECases to a file examples.fs
@@ -87,11 +86,14 @@ Welcome to toobeci
 `)
 	for _, e := range examples {
 		output := ""
-		for _, input := range e.input {
-			out, err := i.handleInputLine(input)
-			if err != nil {
-				t.Errorf("error: %v", err)
-			}
+		out, err := i.handleInputLine(e.input)
+		if err != nil && e.errStr == "" {
+			t.Errorf("unexpected error: %v", err)
+		} else if err == nil && e.errStr != "" {
+			t.Errorf("expected error: %v", e.errStr)
+		} else if err != nil && e.errStr != "" && !strings.Contains(err.Error(), e.errStr) {
+			t.Errorf("expected error: %v, got %v", e.errStr, err.Error())
+		} else {
 			output += out
 		}
 		output = strings.Trim(output, "\n")
@@ -99,9 +101,12 @@ Welcome to toobeci
 			t.Errorf("expected '%v', got '%v'", e.output, output)
 		}
 		if e.canonical {
-			f.WriteString("> " + strings.Join(e.input, " ") + "\n")
+			f.WriteString("> " + e.input + "\n")
 			if e.output != "" {
 				f.WriteString(output + "\n")
+			}
+			if err != nil && err.Error() != "" {
+				f.WriteString(err.Error() + "\n")
 			}
 		}
 	}

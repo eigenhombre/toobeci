@@ -35,12 +35,9 @@ Welcome to toobeci
 2
 > 42 emit
 *
-> \ Unrecognized symbols are just strings for now.
-> \ But the `emit` operator emits unicode characters:
-> Unicode is fun 27700 emit
+> \ The `emit` operator emits unicode characters:
+> 27700 emit
 水
-> .
-fun
 > clr      \ clears the stack
 > .s       \ shows the stack
 > 1 2 3 .s
@@ -78,6 +75,8 @@ fun
 0
 > 0 not .
 -1
+> dakine
+unknown word: dakine
 > ^D
 Goodbye.
 ```

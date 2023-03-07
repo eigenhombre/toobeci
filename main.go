@@ -18,7 +18,8 @@ type stack struct {
 }
 
 type intElement int32
-type stringElement string
+
+// type stringElement string
 
 func (i intElement) String() string {
 	return fmt.Sprintf("%d", i)
@@ -32,16 +33,35 @@ func (i intElement) Equals(e stackElement) bool {
 	return false
 }
 
-func (s stringElement) String() string {
-	return string(s)
+// func (s stringElement) String() string {
+// 	return string(s)
+// }
+
+// func (s stringElement) Equals(e stackElement) bool {
+// 	switch t := e.(type) {
+// 	case stringElement:
+// 		return s == t
+// 	}
+// 	return false
+// }
+
+type dictionary map[string]func(*stack) (*stack, string, error)
+
+type interpreter struct {
+	s    *stack
+	dict dictionary
 }
 
-func (s stringElement) Equals(e stackElement) bool {
-	switch t := e.(type) {
-	case stringElement:
-		return s == t
+func newInterpreter() *interpreter {
+	return &interpreter{
+		s:    &stack{},
+		dict: dictionary{
+			// "three": func(s *stack) (*stack, string, error) {
+			// 	s.push(intElement(3))
+			// 	return s, "", nil
+			// },
+		},
 	}
-	return false
 }
 
 func applyBinOp(s *stack, op func(a, b stackElement) stackElement) (*stack, string, error) {
@@ -230,16 +250,6 @@ func (s *stack) pop() (stackElement, error) {
 	return e, nil
 }
 
-type interpreter struct {
-	s *stack
-}
-
-func newInterpreter() *interpreter {
-	return &interpreter{
-		s: &stack{},
-	}
-}
-
 func parse(input string) []string {
 	halves := strings.Split(input, "\\")
 	// discard comments:
@@ -254,12 +264,21 @@ func (i *interpreter) handleInputLine(input string) (string, error) {
 	var err error
 	var out string
 	for _, word := range words {
-		// fmt.Println("handling word", word)
-		// See if input is in dictionary
 		if word == "" {
 			continue
 		}
+		// See if input is in dictionary:
 		if f, ok := builtins[word]; ok {
+			// If so, call it
+			i.s, out, err = f(i.s)
+			ret += out
+			if err != nil {
+				return ret, err
+			}
+			continue
+		}
+		// See if it's in the user-defined dictionary:
+		if f, ok := i.dict[word]; ok {
 			// If so, call it
 			i.s, out, err = f(i.s)
 			ret += out
@@ -274,7 +293,8 @@ func (i *interpreter) handleInputLine(input string) (string, error) {
 			i.s.push(intElement(intVal))
 			continue
 		}
-		i.s.push(stringElement(word))
+		// I'm all out of love, I'm so lost without you:
+		return ret, fmt.Errorf("unknown word: %v", word)
 	}
 	return ret, nil
 }
