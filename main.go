@@ -55,177 +55,12 @@ type interpreter struct {
 func newInterpreter() *interpreter {
 	return &interpreter{
 		s:    &stack{},
-		dict: dictionary{
-			// "three": func(s *stack) (*stack, string, error) {
-			// 	s.push(intElement(3))
-			// 	return s, "", nil
-			// },
-		},
+		dict: initialDict, // builtin.go
 	}
-}
-
-func applyBinOp(s *stack, op func(a, b stackElement) stackElement) (*stack, string, error) {
-	e1, err := s.pop()
-	if err != nil {
-		return s, "", err
-	}
-	e2, err := s.pop()
-	if err != nil {
-		return s, "", err
-	}
-	switch e1.(type) {
-	case intElement:
-		switch e2.(type) {
-		case intElement:
-			s.push(op(e1, e2))
-			return s, "", nil
-		}
-	}
-	return s, "", fmt.Errorf("type error")
 }
 
 const True = intElement(-1)
 const False = intElement(0)
-
-var builtins = map[string]func(*stack) (*stack, string, error){
-	"+": func(s *stack) (*stack, string, error) {
-		return applyBinOp(s, func(a, b stackElement) stackElement {
-			return intElement(a.(intElement) + b.(intElement))
-		})
-	},
-	"-": func(s *stack) (*stack, string, error) {
-		return applyBinOp(s, func(a, b stackElement) stackElement {
-			return intElement(a.(intElement) - b.(intElement))
-		})
-	},
-	"*": func(s *stack) (*stack, string, error) {
-		return applyBinOp(s, func(a, b stackElement) stackElement {
-			return intElement(a.(intElement) * b.(intElement))
-		})
-	},
-	"/": func(s *stack) (*stack, string, error) {
-		return applyBinOp(s, func(a, b stackElement) stackElement {
-			return intElement(a.(intElement) / b.(intElement))
-		})
-	},
-	"and": func(s *stack) (*stack, string, error) {
-		return applyBinOp(s, func(a, b stackElement) stackElement {
-			return intElement(a.(intElement) & b.(intElement))
-		})
-	},
-	"or": func(s *stack) (*stack, string, error) {
-		return applyBinOp(s, func(a, b stackElement) stackElement {
-			return intElement(a.(intElement) | b.(intElement))
-		})
-	},
-	"=": func(s *stack) (*stack, string, error) {
-		return applyBinOp(s, func(a, b stackElement) stackElement {
-			if a.Equals(b) {
-				return True
-			}
-			return False
-		})
-	},
-	"not": func(s *stack) (*stack, string, error) {
-		e, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		switch t := e.(type) {
-		case intElement:
-			if t == False {
-				s.push(True)
-			} else {
-				s.push(False)
-			}
-			return s, "", nil
-		}
-		return s, "", fmt.Errorf("type error")
-	},
-	"drop": func(s *stack) (*stack, string, error) {
-		_, err := s.pop()
-		return s, "", err
-	},
-	"swap": func(s *stack) (*stack, string, error) {
-		e1, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		e2, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		s.push(e1)
-		s.push(e2)
-		return s, "", nil
-	},
-	"rot": func(s *stack) (*stack, string, error) {
-		e1, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		e2, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		e3, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		s.push(e2)
-		s.push(e1)
-		s.push(e3)
-		return s, "", nil
-	},
-	"over": func(s *stack) (*stack, string, error) {
-		e1, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		e2, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		s.push(e2)
-		s.push(e1)
-		s.push(e2)
-		return s, "", nil
-	},
-	"dup": func(s *stack) (*stack, string, error) {
-		e, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		s.push(e)
-		s.push(e)
-		return s, "", nil
-	},
-	".": func(s *stack) (*stack, string, error) {
-		e, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		return s, e.String() + "\n", nil
-	},
-	"emit": func(s *stack) (*stack, string, error) {
-		e, err := s.pop()
-		if err != nil {
-			return s, "", err
-		}
-		switch e := e.(type) {
-		case intElement:
-			return s, fmt.Sprintf("%c", e), nil
-		default:
-			return s, "", fmt.Errorf("type error")
-		}
-	},
-	".s": func(s *stack) (*stack, string, error) {
-		return s, s.String(), nil
-	},
-	"clr": func(s *stack) (*stack, string, error) {
-		return &stack{}, "", nil
-	},
-}
 
 func (s *stack) String() string {
 	ret := ""
@@ -267,19 +102,8 @@ func (i *interpreter) handleInputLine(input string) (string, error) {
 		if word == "" {
 			continue
 		}
-		// See if input is in dictionary:
-		if f, ok := builtins[word]; ok {
-			// If so, call it
-			i.s, out, err = f(i.s)
-			ret += out
-			if err != nil {
-				return ret, err
-			}
-			continue
-		}
-		// See if it's in the user-defined dictionary:
+		// Is it in the dictionary?
 		if f, ok := i.dict[word]; ok {
-			// If so, call it
 			i.s, out, err = f(i.s)
 			ret += out
 			if err != nil {
@@ -288,12 +112,12 @@ func (i *interpreter) handleInputLine(input string) (string, error) {
 			continue
 		}
 		// Not in the dictionary?  Try to parse it
-		// as an int
+		// as an int (FIXME: add floats, strings, ...)
 		if intVal, err := strconv.Atoi(word); err == nil {
 			i.s.push(intElement(intVal))
 			continue
 		}
-		// I'm all out of love, I'm so lost without you:
+		// Out of options:
 		return ret, fmt.Errorf("unknown word: %v", word)
 	}
 	return ret, nil
